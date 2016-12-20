@@ -5,6 +5,7 @@ package view
 	import flash.events.FocusEvent;
 	import flash.events.IOErrorEvent;
 	import flash.events.MouseEvent;
+	import flash.events.NetStatusEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.external.ExternalInterface;
 	import flash.net.FileReference;
@@ -116,12 +117,7 @@ package view
 		 */		
 		private function playerHandler():void{
 			p = new HLSPlayer();
-			p.addEventListener("NetStream.Buffer.Full", function(event:Event):void{
-				info.text = "";
-			});
-			p.addEventListener("NetStream.Buffer.Empty", function(event:Event):void{
-				info.text = "loading";
-			});
+			p.addEventListener(NetStatusEvent.NET_STATUS, status);
 			p.addEventListener("STH_WRONG", function(event:Event):void{
 				info.text = "";
 			});
@@ -154,6 +150,14 @@ package view
 				}
 			});
 			addElement(p);
+		}
+		
+		private function status(event:NetStatusEvent):void {
+			if(event.info.code == "NetStream.Buffer.Empty") {
+				info.text = "loading";
+			} else if(event.info.code == "NetStream.Buffer.Full") {
+				info.text = "";
+			}
 		}
 		
 		/**

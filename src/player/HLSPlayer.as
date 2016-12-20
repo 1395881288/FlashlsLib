@@ -184,7 +184,6 @@ package player
 		}
 		
 		private function netStatus(event:NetStatusEvent):void {
-//			trace(event.info.code);
 			this.dispatchEvent(event.clone());
 		}
 		
