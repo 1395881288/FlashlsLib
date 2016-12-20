@@ -19,6 +19,8 @@ package player
 	import flash.net.URLStream;
 	import flash.utils.Timer;
 	
+	import mx.controls.Alert;
+	
 	import org.mangui.hls.HLS;
 	import org.mangui.hls.event.HLSEvent;
 	
@@ -112,6 +114,7 @@ package player
 			stage.removeEventListener(StageVideoAvailabilityEvent.STAGE_VIDEO_AVAILABILITY, onStageVideoState);
 			
 			timer.addEventListener(TimerEvent.TIMER, timerHandler);
+			timeoutTimer.addEventListener(TimerEvent.TIMER, timeoutHandler);
 		}
 		
 		private function manifestLoadedHandler(event:HLSEvent):void {
@@ -185,6 +188,26 @@ package player
 		
 		private function netStatus(event:NetStatusEvent):void {
 			this.dispatchEvent(event.clone());
+			
+			var currentTime:Date = new Date();
+			if(event.info.code == "NetStream.Buffer.Empty"){
+				startEmpty = (new Date).time;
+				timeoutTimer.start();
+			} else if(event.info.code == "NetStream.Buffer.Full") {
+				timeoutTimer.stop();
+				
+				const now:Number = (new Date()).time;
+				if(startEmpty>0){
+					emptyArr.push({
+						endtime:Utils.date(now),
+						duration:(now - startEmpty)/1000
+					});
+					trace("缓冲："+emptyArr[emptyArr.length-1].duration);
+					startEmpty = -1;
+					
+					getBufferResult();
+				}
+			}
 		}
 		
 		private function timerHandler(event:TimerEvent):void {
@@ -218,6 +241,38 @@ package player
 //				oldLoaded = loaded;
 //				getBitrateResult();
 //			}
+		}
+		
+		/**
+		 * 超时 
+		 * @param event
+		 * 
+		 */		
+		private function timeoutHandler(event:TimerEvent):void{
+			timeoutTimer.stop();
+			
+			if(++timeoutCounter >= 3){
+				this.unloadResource();
+				dispatchEvent(new Event("STH_WRONG"));
+				Alert.show("超时");
+				timeoutCounter = 0;
+			}else{
+				trace("timeout");
+				this.initPlayer(hlsURL);	
+			}
+		}
+		
+		private function unloadResource():void
+		{
+			try {
+				hls.stream.close();
+			} catch (error:Error) {
+				trace(error);
+			}
+			
+			if(timeoutTimer.running)timeoutTimer.stop();
+			timer.reset();
+			startEmpty = -1;
 		}
 		
 		public function set volume(_v:Number):void{
@@ -276,6 +331,19 @@ package player
 			}
 			this.bitrateCounter = i;
 			dispatchEvent(new Event("UPDATE_BITRATE"));
+		}
+		
+		/**
+		 * 缓冲数据 
+		 * 
+		 */		
+		private function getBufferResult():void{
+			var i:int;
+			for(i=emptyCounter;i<emptyArr.length;i++){
+				buffer = emptyArr[i].endtime+" : "+emptyArr[i].duration+"\r\n";
+			}
+			emptyCounter = i;
+			dispatchEvent(new Event("UPDATE_BUFFER"));
 		}
 	}
 }
