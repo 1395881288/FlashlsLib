@@ -1,0 +1,214 @@
+<!doctype html>
+<html>
+<head>
+<meta content="text/html; charset=utf-8">
+<title>HLSQualityMonitorWeb</title>
+</head>
+
+<body>
+<div>
+  <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="960" height="110">
+    <param name="movie" value="HLSQualityMonitorWeb.swf?hls=" />
+    <param name="quality" value="high" />
+    <param name="allowScriptAccess" value="always" />
+    <param name="allowFullScreen" value="true" />
+    <!--[if !IE]>-->
+    <object type="application/x-shockwave-flash" data="HLSQualityMonitorWeb.swf?hls=" width="960" height="110">
+      <param name="quality" value="high" />
+      <param name="allowScriptAccess" value="always" />
+      <param name="allowFullScreen" value="true" />
+      <!--<![endif]--> 
+      <!--[if gte IE 6]>-->
+      <p> Either scripts and active content are not permitted to run or Adobe Flash Player version
+        ${version_major}.${version_minor}.${version_revision} or greater is not installed. </p>
+      <!--<![endif]--> 
+      <a href="http://www.adobe.com/go/getflashplayer"> <img src="http://www.adobe.com/images/shared/download_buttons/get_flash_player.gif" alt="Get Adobe Flash Player" /> </a> 
+      <!--[if !IE]>-->
+    </object>
+    <!--<![endif]-->
+  </object>
+</div>
+
+
+<table>
+  <tr>
+    <td><div>时间戳</div>
+      <div>
+        <textarea id="timestampTextarea" style="width:300px; height:400px" readonly></textarea>
+      </div></td>
+    <td><div>帧率</div>
+      <div>
+        <textarea id="fpsTextarea" style="width:300px; height:400px" readonly></textarea>
+      </div></td>
+    <td><div>码率 kbps</div>
+      <div>
+        <textarea id="bitrateTextarea" style="width:300px; height:400px" readonly></textarea>
+      </div></td>
+    <td><div>缓冲</div>
+      <div>
+        <textarea id="bufferTextarea" style="width:300px; height:400px" readonly></textarea>
+      </div></td>
+  </tr>
+</table>
+<div>
+  <button id="localDataBtn">show localStorage</button>
+</div>
+        
+        
+<script type="text/javascript">
+//buffer
+var bufferTempLog = "";
+var bufferArea = document.getElementById("bufferTextarea");
+var updateBufferLog = true;
+bufferArea.onmouseover = function () {
+    updateBufferLog = false;
+}
+bufferArea.onmouseout = function () {
+    updateBufferLog = true;
+}
+function showBufferLog(data) {
+    if (updateBufferLog) {
+    	if(bufferTempLog!="") {
+    		data = bufferTempLog + data;
+    	}
+        bufferArea.value += data;
+        bufferArea.scrollTop = bufferArea.scrollHeight;
+
+		if(window.localStorage) {
+			if(!localStorage.buffer) {
+				localStorage.buffer = "";
+			}
+			localStorage.buffer += data;
+		}
+        
+        bufferTempLog = "";
+    } else {
+    	bufferTempLog += data;
+    }
+}
+
+//timestamp
+var timestampTempLog = "";
+var timestampArea = document.getElementById("timestampTextarea");
+var updateTimestampLog = true;
+timestampArea.onmouseover = function () {
+    updateTimestampLog = false;
+}
+timestampArea.onmouseout = function () {
+    updateTimestampLog = true;
+}
+function showTimestampLog(data) {
+    if (updateTimestampLog) {
+    	if(timestampTempLog!="") {
+    		data = timestampTempLog + data;
+    	}
+    	
+        timestampArea.value += data;
+        timestampArea.scrollTop = timestampArea.scrollHeight;
+        
+        if(window.localStorage) {
+        	if(!localStorage.timestamp) {
+        		localStorage.timestamp = "";
+        	}
+			localStorage.timestamp += data;
+		}
+        
+        timestampTempLog = "";
+    } else {
+    	timestampTempLog += data;
+    }
+}
+
+//fps
+var fpsTempLog = "";
+var fpsArea = document.getElementById("fpsTextarea");
+var updateFPSLog = true;
+fpsArea.onmouseover = function () {
+    updateFPSLog = false;
+}
+fpsArea.onmouseout = function () {
+    updateFPSLog = true;
+}
+function showFPSLog(data) {
+    if (updateFPSLog) {
+    	if(fpsTempLog!="") {
+    		data = fpsTempLog + data;
+    	}
+        fpsArea.value += data;
+        fpsArea.scrollTop = fpsArea.scrollHeight;
+        
+        if(window.localStorage) {
+        	if(!localStorage.fps) {
+        		localStorage.fps = "";
+        	}
+			localStorage.fps += data;
+		}
+        
+        fpsTempLog = "";
+    } else {
+    	fpsTempLog += data;
+    }
+}
+
+//bitrate
+var bitrateTempLog = "";
+var bitrateArea = document.getElementById("bitrateTextarea");
+var updateBitrateLog = true;
+bitrateArea.onmouseover = function () {
+    updateBitrateLog = false;
+}
+bitrateArea.onmouseout = function () {
+    updateBitrateLog = true;
+}
+function showBitrateLog(data) {
+    if (updateBitrateLog) {
+    	if(bitrateTempLog!="") {
+    		data = bitrateTempLog + data;
+    	}
+        bitrateArea.value += data;
+        bitrateArea.scrollTop = bitrateArea.scrollHeight;
+        
+        if(window.localStorage) {
+        	if(!localStorage.bitrate) {
+        		localStorage.bitrate = "";
+        	}
+			localStorage.bitrate += data;
+		}
+        
+        bitrateTempLog = "";
+    } else {
+    	bitrateTempLog += data;
+    }
+}
+
+//save url
+function saveURL(url) {
+	if(window.localStorage) {
+		if(localStorage.hlsurl != url) {
+			clearAll();
+			localStorage.hlsurl = url;
+		}
+	}
+}
+
+//get data from storage
+var localDataBtn = document.getElementById("localDataBtn");
+localDataBtn.onclick = function() {
+	if(window.localStorage) {
+		saveURL("");
+		timestampArea.value = localStorage.timestamp;
+		bufferArea.value = localStorage.buffer
+		fpsArea.value = localStorage.fps;
+		bitrateArea.value = localStorage.bitrate;
+	} else {
+		alert("WebStorage is disabled");
+	}
+}
+
+clearAll();
+function clearAll() {
+    bufferArea.value = timestampArea.value = fpsArea.value = bitrateArea.value = "";
+} 
+</script>	
+</body>
+</html>
